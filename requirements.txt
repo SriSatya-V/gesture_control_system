@@ -9,3 +9,11 @@ sounddevice==0.5.3
 comtypes
 pycaw
 ffpyplayer
+screen-brightness-control
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+websockets
+pyautogui
+screen_brightness_control

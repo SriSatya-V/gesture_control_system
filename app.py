@@ -1,68 +1,92 @@
-from flask import Flask, render_template, Response, request, send_from_directory
-from flask_socketio import SocketIO, emit
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, UploadFile, File
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import os
+import shutil
+import asyncio
 import GestureEngine
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app = FastAPI()
 
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Configuration
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Static files and Templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
-# Global Gesture Engine
-engine = list() 
-# Using a list to hold the instance so we can lazily init or handle restarts if needed, 
-# although global var is also fine.
+# Gesture Engine
 gesture_engine = GestureEngine.GestureEngine()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# WebSocket Manager to broadcast gestures
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
 
-@app.route('/upload_video', methods=['POST'])
-def upload_video():
-    if 'video' not in request.files:
-        return {'status': 'error', 'message': 'No file part'}, 400
-    file = request.files['video']
-    if file.filename == '':
-        return {'status': 'error', 'message': 'No selected file'}, 400
-    if file:
-        filename = file.filename
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        return {'status': 'success', 'filename': filename, 'url': f"/static/uploads/{filename}"}
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
 
-def generate_frames():
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except:
+                pass
+
+manager = ConnectionManager()
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/upload_video")
+async def upload_video(video: UploadFile = File(...)):
+    filename = video.filename
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(video.file, buffer)
+        
+    return {"status": "success", "filename": filename, "url": f"/static/uploads/{filename}"}
+
+async def generate_frames():
     while True:
+        # We need to run the engine in a wheel or thread if it's blocking
+        # But for M-JPEG it's usually fine to loop
         frame_bytes, gesture = gesture_engine.get_frame_data()
         
-        if gesture:
-            # Emit socket event
-            # We need to use the app context or socketio's broadcase capability
-            socketio.emit('gesture_detected', {'action': gesture})
-            print(f"Emitted: {gesture}")
+        if gesture and gesture != "Brightness":
+            # Broadcast gesture to all websocket clients
+            # Since this is an async generator, we can await
+            await manager.broadcast({"action": gesture})
+            print(f"Broadcasted: {gesture}")
 
         if frame_bytes:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
         else:
-            break
+            await asyncio.sleep(0.01) # Avoid tight loop if no frames
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.get("/video_feed")
+async def video_feed():
+    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
-@socketio.on('connect')
-def test_connect():
-    print('Client connected')
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Just keep the connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected')
-
-if __name__ == '__main__':
-    # host='0.0.0.0' allows external access (like from a real smart TV on the network)
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)

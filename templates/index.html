@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +10,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Socket IO -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 </head>
+
 <body>
-    
+
     <!-- Toasts -->
     <div id="toast-container"></div>
 
     <header>
-        <div class="logo">ANTIGRAVITY <span class="sub-logo">CONTROLLER</span></div>
+        <div class="logo">GESTURE <span class="sub-logo">CONTROLLER</span></div>
         <div class="status-bar">
             <div class="status-item">
                 <div class="dot" id="connection-status"></div>
@@ -40,7 +40,7 @@
                 <div class="cam-feed-container">
                     <img src="{{ url_for('video_feed') }}" class="cam-feed" alt="Webcam Feed">
                 </div>
-                
+
                 <h3>Recent Gestures</h3>
                 <div class="gesture-history" id="gesture-history-list">
                     <!-- Items added by JS -->
@@ -57,7 +57,7 @@
                     Your browser does not support HTML5 video.
                 </video>
             </div>
-            
+
             <div class="upload-btn-container">
                 <label for="video-upload" class="upload-btn">
                     Upload Video File
@@ -70,7 +70,7 @@
         <aside class="right-panel">
             <div class="glass-panel" style="height: 100%;">
                 <h3>Gesture Legend</h3>
-                
+
                 <div class="legend-item">
                     <div class="legend-icon">🖐️</div>
                     <div class="legend-text">
@@ -118,10 +118,19 @@
                         <span>Fast Forward 10s</span>
                     </div>
                 </div>
+
+                <div class="legend-item">
+                    <div class="legend-icon">👌</div>
+                    <div class="legend-text">
+                        <strong>Pinch/Spread</strong>
+                        <span>Brightness Control</span>
+                    </div>
+                </div>
             </div>
         </aside>
     </main>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
 </body>
+
 </html>

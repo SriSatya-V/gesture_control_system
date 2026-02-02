@@ -36,8 +36,13 @@ body::before {
 }
 
 @keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Header / Status Bar */
@@ -90,9 +95,24 @@ header {
 main {
     flex: 1;
     display: grid;
-    grid-template-columns: 300px 1fr 300px; /* Left Sidebar, Center Player, Right Sidebar */
+    grid-template-columns: 300px 1fr 300px;
+    grid-template-rows: 100%;
+    /* Force single row filling height */
     gap: 20px;
     padding: 20px;
+    height: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.left-panel,
+.right-panel {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 /* Cards */
@@ -105,6 +125,8 @@ main {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
+    /* Important for flex/grid nesting */
 }
 
 /* Left Sidebar: Cam & Status */
@@ -117,6 +139,8 @@ main {
     margin-bottom: 20px;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
+    /* Prevent cam feed from squishing */
 }
 
 .cam-feed {
@@ -128,67 +152,93 @@ main {
 .gesture-history {
     flex: 1;
     overflow-y: auto;
+    min-height: 0;
+    /* Allow scrolling within the flex container */
 }
 
 .history-item {
     font-size: 0.9rem;
     padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
-    from { transform: translateX(-20px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Center: Video Player */
 .video-section {
+    position: relative;
+    height: 100%;
+    width: 100%;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    position: relative;
+    overflow: hidden;
 }
 
 .video-container {
-    width: 100%;
+    width: 95%;
     max-width: 1000px;
-    aspect-ratio: 16/9;
     background: #000;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border-radius: 24px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
     overflow: hidden;
     position: relative;
+    flex-shrink: 0;
+    z-index: 5;
+
+    /* Lock Aspect Ratio */
+    aspect-ratio: 16/9;
+
+    /* Ensure it scales but stays centered */
+    max-height: 80vh;
 }
 
 video {
     width: 100%;
     height: 100%;
+    display: block;
+    object-fit: contain;
     outline: none;
 }
 
-/* Upload Overlay */
+/* Upload UI - Fixed to bottom to avoid layout shifts */
 .upload-btn-container {
-    margin-top: 20px;
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
 }
 
 .upload-btn {
     background: var(--accent);
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
 }
 
 .upload-btn:hover {
     background: #5649c2;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
 }
 
 /* Right Sidebar: Legend & Debug */
@@ -197,7 +247,7 @@ video {
     align-items: center;
     margin-bottom: 15px;
     padding: 10px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
 }
 
@@ -212,6 +262,7 @@ video {
     display: block;
     color: var(--text-primary);
 }
+
 .legend-text span {
     font-size: 0.8rem;
     color: var(--text-secondary);
@@ -233,7 +284,7 @@ video {
     color: white;
     padding: 15px 25px;
     border-radius: 8px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     animation: fadeOut 4s forwards;
     display: flex;
     align-items: center;
@@ -241,8 +292,22 @@ video {
 }
 
 @keyframes fadeOut {
-    0% { opacity: 0; transform: translateY(20px); }
-    10% { opacity: 1; transform: translateY(0); }
-    80% { opacity: 1; }
-    100% { opacity: 0; display: none; }
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        display: none;
+    }
 }
