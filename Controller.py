@@ -4,11 +4,11 @@ from config import BRIGHTNESS_STEP
 
 def perform_action(gesture):
 
-    # Play
+    # Play (open palm)
     if gesture == "OPEN_FIST":
         pyautogui.press("playpause")
 
-    # Pause
+    # Pause (closed fist)
     elif gesture == "CLOSED_FIST":
         pyautogui.press("playpause")
 
