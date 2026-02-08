@@ -1,19 +1,6 @@
-absl-py==2.3.1
-cffi==2.0.0
-flatbuffers==25.12.19
-mediapipe==0.10.21
-numpy
 opencv-python
-pycparser==2.23
-sounddevice==0.5.3
-comtypes
-pycaw
-ffpyplayer
-screen-brightness-control
-fastapi
-uvicorn[standard]
-jinja2
-python-multipart
-websockets
+mediapipe
 pyautogui
-screen_brightness_control
+screen-brightness-control
+
+# pip install "numpy<2" "opencv-python==4.10.0.84" "opencv-contrib-python==4.10.0.84" mediapipe
