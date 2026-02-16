@@ -1,6 +1,7 @@
-HOLD_TIME = 0.5          # Time to hold a static gesture (Volume/Pause)
-SWIPE_THRESHOLD = 40     # How fast hand must move to count as swipe
-COOLDOWN = 1.0           # Time between actions to prevent double clicks
-BRIGHTNESS_STEP = 10
 CAMERA_WIDTH = 640
 CAMERA_HEIGHT = 480
+CONFIDENCE_THRESHOLD = 0.7
+MAX_NUM_HANDS = 1
+BRIGHTNESS_STEP = 5
+SCROLL_THRESHOLD = 0.02
+VOLUME_DELAY = 0.1
